@@ -1,0 +1,14 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.PemesananTahuSiBungsu" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Primary color -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorOnPrimary">@color/colorOnPrimary</item>
+
+        <!-- Tombol otomatis ikut warna primary -->
+        <item name="materialButtonStyle">@style/AppButton</item>
+    </style>
+
+    <style name="Theme.PemesananTahuSiBungsu" parent="Base.Theme.PemesananTahuSiBungsu"/>
+
+</resources>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Style tombol utama -->
+    <style name="AppButton" parent="Widget.Material3.Button">
+        <item name="android:backgroundTint">@color/colorPrimary</item>
+        <item name="android:textColor">@color/colorOnPrimary</item>
+        <item name="cornerRadius">24dp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+
+</resources>
