@@ -26,8 +26,8 @@
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvCart"
-            android:layout_width="379dp"
-            android:layout_height="454dp"
+            android:layout_width="383dp"
+            android:layout_height="443dp"
             android:layout_weight="0" />
 
         <TextView
