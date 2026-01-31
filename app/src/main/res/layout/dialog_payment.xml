@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_dialog"
+    android:gravity="center">
+
+    <!-- Tombol X Batal -->
+    <ImageView
+        android:id="@+id/btn_close"
+        android:layout_width="38dp"
+        android:layout_height="41dp"
+        android:layout_gravity="end"
+        android:contentDescription="Tutup"
+        android:padding="4dp"
+        android:src="@drawable/balik" />
+
+    <!-- Judul -->
+    <TextView
+        android:id="@+id/tv_title"
+        android:text="Konfirmasi Pembayaran"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginTop="8dp"
+        android:layout_gravity="center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+    <!-- Total -->
+    <TextView
+        android:id="@+id/tv_total"
+        android:text="Total Rp 0"
+        android:textSize="16sp"
+        android:layout_marginTop="12dp"
+        android:layout_gravity="center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+    <!-- RadioGroup metode pembayaran -->
+    <RadioGroup
+        android:id="@+id/rg_payment"
+        android:orientation="vertical"
+        android:layout_marginTop="16dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <RadioButton
+            android:id="@+id/rb_dana"
+            android:text="Dana"
+            android:checked="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+        <RadioButton
+            android:id="@+id/rb_bank"
+            android:text="Bank"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+    </RadioGroup>
+
+    <!-- Tombol Bayar -->
+    <Button
+        android:id="@+id/btn_pay"
+        android:text="✔ Bayar"
+        android:layout_marginTop="24dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:backgroundTint="#37FF00"
+        android:textColor="@android:color/white"/>
+</LinearLayout>
