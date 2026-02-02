@@ -1,11 +1,11 @@
 package com.example.pemesanantahusibungsu
 
-import android.app.AlertDialog
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.provider.MediaStore
 import android.widget.*
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
@@ -18,12 +18,20 @@ class ProfileActivity : AppCompatActivity() {
     private lateinit var tvBio: TextView
     private lateinit var pref: android.content.SharedPreferences
 
-    private val PICK_IMAGE = 100
+    // Modern image picker
+    private val imagePicker =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+            uri?.let {
+                imgProfile.setImageURI(it)
+                pref.edit().putString("photo", it.toString()).apply()
+            }
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_profile)
 
+        // ==== INIT VIEW ====
         imgProfile = findViewById(R.id.imgProfile)
         tvName = findViewById(R.id.tvName)
         tvEmail = findViewById(R.id.tvEmail)
@@ -36,34 +44,19 @@ class ProfileActivity : AppCompatActivity() {
 
         pref = getSharedPreferences("USER_DATA", MODE_PRIVATE)
 
-        // LOAD DATA
+        // ==== LOAD DATA DARI SHARED PREFERENCES ====
         loadProfile()
 
-        // EDIT NAME
-        tvName.setOnClickListener {
-            showEditDialog("Nama", "nama", tvName)
-        }
+        // ==== EDIT DATA ====
+        tvName.setOnClickListener { showEditDialog("Nama", "nama", tvName) }
+        tvPhone.setOnClickListener { showEditDialog("Nomor HP", "phone", tvPhone) }
+        tvBio.setOnClickListener { showEditDialog("Bio", "bio", tvBio) }
 
-        // EDIT PHONE
-        tvPhone.setOnClickListener {
-            showEditDialog("Nomor HP", "phone", tvPhone)
-        }
-
-        // EDIT BIO
-        tvBio.setOnClickListener {
-            showEditDialog("Bio", "bio", tvBio)
-        }
-
-        // EDIT PHOTO
         tvEditPhoto.setOnClickListener {
-            val intent = Intent(
-                Intent.ACTION_PICK,
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-            )
-            startActivityForResult(intent, PICK_IMAGE)
+            imagePicker.launch("image/*")
         }
 
-        // LOGOUT
+        // ==== LOGOUT ====
         tvLogout.setOnClickListener {
             pref.edit().clear().apply()
             Toast.makeText(this, "Logout berhasil", Toast.LENGTH_SHORT).show()
@@ -71,20 +64,26 @@ class ProfileActivity : AppCompatActivity() {
             finish()
         }
 
-        // BOTTOM NAV
+        // ==== BOTTOM NAVIGATION ====
         bottomNav.selectedItemId = R.id.nav_profile
-        bottomNav.setOnItemSelectedListener {
-            when (it.itemId) {
+        bottomNav.setOnItemSelectedListener { item ->
+            when (item.itemId) {
                 R.id.nav_home -> {
-                    startActivity(Intent(this, DashboardActivity::class.java))
+                    if (this !is DashboardActivity) {
+                        startActivity(Intent(this, DashboardActivity::class.java))
+                    }
                     true
                 }
                 R.id.nav_cart -> {
-                    startActivity(Intent(this, CartActivity::class.java))
+                    if (this !is CartActivity) {
+                        startActivity(Intent(this, CartActivity::class.java))
+                    }
                     true
                 }
                 R.id.nav_order -> {
-                    startActivity(Intent(this, OrderActivity::class.java))
+                    if (this !is OrderActivity) {
+                        startActivity(Intent(this, OrderActivity::class.java))
+                    }
                     true
                 }
                 R.id.nav_profile -> true
@@ -101,34 +100,30 @@ class ProfileActivity : AppCompatActivity() {
 
         val imgUri = pref.getString("photo", null)
         if (!imgUri.isNullOrEmpty()) {
-            imgProfile.setImageURI(Uri.parse(imgUri))
+            try {
+                imgProfile.setImageURI(Uri.parse(imgUri))
+            } catch (e: Exception) {
+                imgProfile.setImageResource(R.drawable.logo) // fallback jika gagal
+            }
+        } else {
+            imgProfile.setImageResource(R.drawable.logo) // default
         }
     }
 
     private fun showEditDialog(title: String, key: String, target: TextView) {
         val input = EditText(this)
         input.setText(target.text.toString())
+        input.setSingleLine(true)
 
         AlertDialog.Builder(this)
             .setTitle("Edit $title")
             .setView(input)
             .setPositiveButton("Simpan") { _, _ ->
-                val value = input.text.toString()
+                val value = input.text.toString().trim()
                 target.text = value
                 pref.edit().putString(key, value).apply()
             }
             .setNegativeButton("Batal", null)
             .show()
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == PICK_IMAGE && resultCode == RESULT_OK) {
-            val uri = data?.data
-            if (uri != null) {
-                imgProfile.setImageURI(uri)
-                pref.edit().putString("photo", uri.toString()).apply()
-            }
-        }
     }
 }
