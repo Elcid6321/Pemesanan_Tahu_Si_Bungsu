@@ -4,84 +4,77 @@ import android.app.AlertDialog
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class ProfileActivity : AppCompatActivity() {
 
-    companion object {
-        private const val PICK_IMAGE_REQUEST = 100
-    }
+    private lateinit var imgProfile: ImageView
+    private lateinit var tvName: TextView
+    private lateinit var tvEmail: TextView
+    private lateinit var tvPhone: TextView
+    private lateinit var tvBio: TextView
+    private lateinit var pref: android.content.SharedPreferences
 
-    private val PREFS_NAME = "user_prefs"
+    private val PICK_IMAGE = 100
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_profile) // pastikan ini XML yg kamu kirim
+        setContentView(R.layout.activity_profile)
 
-        // ===== INIT VIEW =====
-        val imgProfile: ImageView = findViewById(R.id.imgProfile)
-        val tvName: TextView = findViewById(R.id.tvName)
-        val tvEmail: TextView = findViewById(R.id.tvEmail)
-        val tvPhone: TextView = findViewById(R.id.tvPhone)
-        val tvBio: TextView = findViewById(R.id.tvBio)
+        imgProfile = findViewById(R.id.imgProfile)
+        tvName = findViewById(R.id.tvName)
+        tvEmail = findViewById(R.id.tvEmail)
+        tvPhone = findViewById(R.id.tvPhone)
+        tvBio = findViewById(R.id.tvBio)
+
         val tvEditPhoto: LinearLayout = findViewById(R.id.tvEditPhoto)
         val tvLogout: LinearLayout = findViewById(R.id.tvLogout)
         val bottomNav: BottomNavigationView = findViewById(R.id.bottom_navigation)
 
-        // ===== SET ACTIVE NAV =====
-        bottomNav.selectedItemId = R.id.nav_profile
+        pref = getSharedPreferences("USER_DATA", MODE_PRIVATE)
 
-        // ===== AMBIL DATA DARI LOGIN / REGISTER =====
-        val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-        tvName.text = prefs.getString("user_name", "Your Name")
-        tvEmail.text = prefs.getString("user_email", "email@example.com")
-        tvPhone.text = prefs.getString("user_phone", "+62 xxxx")
-        tvBio.text = prefs.getString("user_bio", "Bio user...")
+        // LOAD DATA
+        loadProfile()
 
-        // ===== EDIT NAME =====
+        // EDIT NAME
         tvName.setOnClickListener {
-            showEditDialog("Edit Name", tvName.text.toString()) { newValue ->
-                tvName.text = newValue
-                prefs.edit().putString("user_name", newValue).apply()
-            }
+            showEditDialog("Nama", "nama", tvName)
         }
 
-        // ===== EDIT PHONE =====
+        // EDIT PHONE
         tvPhone.setOnClickListener {
-            showEditDialog("Edit Phone", tvPhone.text.toString()) { newValue ->
-                tvPhone.text = newValue
-                prefs.edit().putString("user_phone", newValue).apply()
-            }
+            showEditDialog("Nomor HP", "phone", tvPhone)
         }
 
-        // ===== EDIT BIO =====
+        // EDIT BIO
         tvBio.setOnClickListener {
-            showEditDialog("Edit Bio", tvBio.text.toString()) { newValue ->
-                tvBio.text = newValue
-                prefs.edit().putString("user_bio", newValue).apply()
-            }
+            showEditDialog("Bio", "bio", tvBio)
         }
 
-        // ===== EDIT PHOTO =====
+        // EDIT PHOTO
         tvEditPhoto.setOnClickListener {
-            val intent = Intent(Intent.ACTION_PICK)
-            intent.type = "image/*"
-            startActivityForResult(intent, PICK_IMAGE_REQUEST)
+            val intent = Intent(
+                Intent.ACTION_PICK,
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+            )
+            startActivityForResult(intent, PICK_IMAGE)
         }
 
-        // ===== LOGOUT =====
+        // LOGOUT
         tvLogout.setOnClickListener {
-            prefs.edit().clear().apply() // hapus data login
+            pref.edit().clear().apply()
             Toast.makeText(this, "Logout berhasil", Toast.LENGTH_SHORT).show()
             startActivity(Intent(this, LoginActivity::class.java))
             finish()
         }
 
-        // ===== BOTTOM NAVIGATION =====
-        bottomNav.setOnItemSelectedListener { item ->
-            when (item.itemId) {
+        // BOTTOM NAV
+        bottomNav.selectedItemId = R.id.nav_profile
+        bottomNav.setOnItemSelectedListener {
+            when (it.itemId) {
                 R.id.nav_home -> {
                     startActivity(Intent(this, DashboardActivity::class.java))
                     true
@@ -100,33 +93,41 @@ class ProfileActivity : AppCompatActivity() {
         }
     }
 
-    // ===== DIALOG EDIT =====
-    private fun showEditDialog(title: String, currentValue: String, onSave: (String) -> Unit) {
-        val builder = AlertDialog.Builder(this)
-        builder.setTitle(title)
+    private fun loadProfile() {
+        tvName.text = pref.getString("nama", "Your Name")
+        tvEmail.text = pref.getString("email", "email@example.com")
+        tvPhone.text = pref.getString("phone", "+62 xxxx")
+        tvBio.text = pref.getString("bio", "Bio user...")
 
-        val input = EditText(this)
-        input.setText(currentValue)
-        input.setSelection(currentValue.length)
-        builder.setView(input)
-
-        builder.setPositiveButton("Simpan") { dialog, _ ->
-            val newValue = input.text.toString().trim()
-            if (newValue.isNotEmpty()) onSave(newValue)
-            dialog.dismiss()
+        val imgUri = pref.getString("photo", null)
+        if (!imgUri.isNullOrEmpty()) {
+            imgProfile.setImageURI(Uri.parse(imgUri))
         }
-        builder.setNegativeButton("Batal") { dialog, _ -> dialog.dismiss() }
-        builder.show()
     }
 
-    // ===== RESULT IMAGE =====
+    private fun showEditDialog(title: String, key: String, target: TextView) {
+        val input = EditText(this)
+        input.setText(target.text.toString())
+
+        AlertDialog.Builder(this)
+            .setTitle("Edit $title")
+            .setView(input)
+            .setPositiveButton("Simpan") { _, _ ->
+                val value = input.text.toString()
+                target.text = value
+                pref.edit().putString(key, value).apply()
+            }
+            .setNegativeButton("Batal", null)
+            .show()
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK) {
-            val uri: Uri? = data?.data
-            uri?.let {
-                findViewById<ImageView>(R.id.imgProfile).setImageURI(it)
-                Toast.makeText(this, "Foto berhasil diubah", Toast.LENGTH_SHORT).show()
+        if (requestCode == PICK_IMAGE && resultCode == RESULT_OK) {
+            val uri = data?.data
+            if (uri != null) {
+                imgProfile.setImageURI(uri)
+                pref.edit().putString("photo", uri.toString()).apply()
             }
         }
     }

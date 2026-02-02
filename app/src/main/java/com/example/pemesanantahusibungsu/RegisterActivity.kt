@@ -2,10 +2,7 @@ package com.example.pemesanantahusibungsu
 
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.widget.Button
-import android.widget.EditText
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 
 class RegisterActivity : AppCompatActivity() {
@@ -24,9 +21,9 @@ class RegisterActivity : AppCompatActivity() {
             getSharedPreferences("USER_DATA", MODE_PRIVATE)
 
         btnRegister.setOnClickListener {
-            val nama = etNama.text.toString()
-            val email = etEmail.text.toString()
-            val password = etPassword.text.toString()
+            val nama = etNama.text.toString().trim()
+            val email = etEmail.text.toString().trim()
+            val password = etPassword.text.toString().trim()
 
             if (nama.isEmpty() || email.isEmpty() || password.isEmpty()) {
                 Toast.makeText(this, "Semua data harus diisi", Toast.LENGTH_SHORT).show()
@@ -35,7 +32,6 @@ class RegisterActivity : AppCompatActivity() {
                     putString("nama", nama)
                     putString("email", email)
                     putString("password", password)
-                    putBoolean("isRegister", true)
                     apply()
                 }
 

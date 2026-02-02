@@ -2,12 +2,9 @@ package com.example.pemesanantahusibungsu
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.TextView
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import android.widget.Toast
 
 class DetailProductActivity : AppCompatActivity() {
 
@@ -15,7 +12,6 @@ class DetailProductActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_detail_product)
 
-        // ======= FIND VIEW =======
         val img = findViewById<ImageView>(R.id.img_product)
         val name = findViewById<TextView>(R.id.tv_name)
         val desc = findViewById<TextView>(R.id.tv_desc)
@@ -23,46 +19,46 @@ class DetailProductActivity : AppCompatActivity() {
         val btnCart = findViewById<Button>(R.id.btn_add_cart)
         val tvBack = findViewById<TextView>(R.id.btn_back)
 
-        // ======= TERIMA DATA DARI DASHBOARD =======
-        img.setImageResource(intent.getIntExtra("image", 0))
-        name.text = intent.getStringExtra("name")
-        desc.text = intent.getStringExtra("desc")
-        price.text = intent.getStringExtra("price")
+        // === TERIMA DATA ===
+        val productName = intent.getStringExtra("name") ?: ""
+        val productDesc = intent.getStringExtra("desc") ?: ""
+        val productPrice = intent.getStringExtra("price") ?: ""
+        val productImage = intent.getIntExtra("image", 0)
 
-        // ======= TOMBOL TAMBAH KE KERANJANG =======
+        img.setImageResource(productImage)
+        name.text = productName
+        desc.text = productDesc
+        price.text = productPrice
+
+        // === TAMBAH KE KERANJANG ===
         btnCart.setOnClickListener {
-            Toast.makeText(this, "${name.text} ditambahkan ke keranjang", Toast.LENGTH_SHORT).show()
+            val intent = Intent(this, CartActivity::class.java)
+            intent.putExtra("name", productName)
+            intent.putExtra("price", productPrice)
+            intent.putExtra("image", productImage)
+            startActivity(intent)
 
+            Toast.makeText(this, "Ditambahkan ke keranjang", Toast.LENGTH_SHORT).show()
         }
 
-        // ======= TOMBOL KEMBALI =======
-        tvBack.setOnClickListener {
-            finish()
-        }
+        tvBack.setOnClickListener { finish() }
 
-        // =========================
-        // BOTTOM NAVIGATION
-        // =========================
+        // === BOTTOM NAV ===
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
         bottomNav.selectedItemId = R.id.nav_home
-
         bottomNav.setOnItemSelectedListener {
             when (it.itemId) {
                 R.id.nav_home -> {
-                    startActivity(Intent(this, DashboardActivity::class.java))
-                    true
+                    startActivity(Intent(this, DashboardActivity::class.java)); true
                 }
                 R.id.nav_cart -> {
-                    startActivity(Intent(this, CartActivity::class.java))
-                    true
+                    startActivity(Intent(this, CartActivity::class.java)); true
                 }
                 R.id.nav_order -> {
-                    startActivity(Intent(this, OrderActivity::class.java))
-                    true
+                    startActivity(Intent(this, OrderActivity::class.java)); true
                 }
                 R.id.nav_profile -> {
-                    startActivity(Intent(this, ProfileActivity::class.java))
-                    true
+                    startActivity(Intent(this, ProfileActivity::class.java)); true
                 }
                 else -> false
             }

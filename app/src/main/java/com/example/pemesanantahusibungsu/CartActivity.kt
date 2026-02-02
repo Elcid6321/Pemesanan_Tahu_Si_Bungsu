@@ -3,9 +3,7 @@ package com.example.pemesanantahusibungsu
 import android.app.Dialog
 import android.content.Intent
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -16,41 +14,60 @@ class CartActivity : AppCompatActivity() {
 
     private lateinit var rvCart: RecyclerView
     private lateinit var tvTotal: TextView
+    private lateinit var tvTotalLabel: TextView
     private lateinit var btnCheckout: Button
+    private lateinit var btnTambahMenu: Button
+
+    private val cartList = mutableListOf<CartItem>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_cart)
 
+        // ===== INIT VIEW =====
         rvCart = findViewById(R.id.rv_cart)
         tvTotal = findViewById(R.id.tv_total_amount)
-        btnCheckout = findViewById(R.id.btn_checkout) // pastikan ada di layout
+        tvTotalLabel = findViewById(R.id.tv_total_label)
+        btnCheckout = findViewById(R.id.btn_checkout)
+        btnTambahMenu = findViewById(R.id.btn_tambah_menu)
 
-        // Sample cart items
-        val cartList = mutableListOf(
-            CartItem("Tahu Goreng", 5000, 1, R.drawable.tahu_goreng),
-            CartItem("Tahu Bulat", 10000, 2, R.drawable.tahu_bulat)
-        )
+        // ===== TERIMA DATA DARI DETAIL =====
+        val name = intent.getStringExtra("name")
+        val priceStr = intent.getStringExtra("price")
+        val image = intent.getIntExtra("image", 0)
 
-        val adapter = CartAdapter(cartList) {
-            updateTotal(cartList)
+        if (name != null && priceStr != null) {
+            val price = priceStr
+                .replace("Rp", "")
+                .replace(".", "")
+                .trim()
+                .toInt()
+
+            cartList.add(CartItem(name, price, 1, image))
         }
 
+        // ===== SET RECYCLER =====
+        val adapter = CartAdapter(cartList) { updateTotal() }
         rvCart.layoutManager = LinearLayoutManager(this)
         rvCart.adapter = adapter
 
-        updateTotal(cartList)
+        updateTotal()
 
-        // ===== CHECKOUT BUTTON =====
+        // ===== TAMBAH MENU =====
+        btnTambahMenu.setOnClickListener {
+            startActivity(Intent(this, DashboardActivity::class.java))
+            finish()
+        }
+
+        // ===== CHECKOUT =====
         btnCheckout.setOnClickListener {
             val total = cartList.sumOf { it.price * it.qty }
-            showCustomPaymentDialog(total)
+            showPaymentDialog(total)
         }
 
         // ===== BOTTOM NAV =====
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
         bottomNav.selectedItemId = R.id.nav_cart
-
         bottomNav.setOnItemSelectedListener {
             when (it.itemId) {
                 R.id.nav_home -> {
@@ -71,51 +88,49 @@ class CartActivity : AppCompatActivity() {
         }
     }
 
-    private fun updateTotal(list: List<CartItem>) {
-        val total = list.sumOf { it.price * it.qty }
+    // =====================
+    // UPDATE TOTAL
+    // =====================
+    private fun updateTotal() {
+        val total = cartList.sumOf { it.price * it.qty }
+        val totalItem = cartList.sumOf { it.qty }
+
         tvTotal.text = "Rp $total"
+        tvTotalLabel.text = "Total ($totalItem item)"
     }
 
-    // =========================
-    // CUSTOM PAYMENT DIALOG
-    // =========================
-    private fun showCustomPaymentDialog(totalAmount: Int) {
+    // =====================
+    // PAYMENT DIALOG
+    // =====================
+    private fun showPaymentDialog(total: Int) {
         val dialog = Dialog(this)
         dialog.setContentView(R.layout.dialog_payment)
         dialog.setCancelable(false)
 
-        val tvTotal = dialog.findViewById<TextView>(R.id.tv_total)
-        val btnClose = dialog.findViewById<ImageView>(R.id.btn_close)
+        val tvTotalDialog = dialog.findViewById<TextView>(R.id.tv_total)
         val btnPay = dialog.findViewById<Button>(R.id.btn_pay)
-        val rgPayment = dialog.findViewById<RadioGroup>(R.id.rg_payment)
+        val btnClose = dialog.findViewById<ImageView>(R.id.btn_close)
 
-        tvTotal.text = "Total Rp $totalAmount"
-
-        btnClose.setOnClickListener {
-            dialog.dismiss() // batal tetap di halaman cart
-        }
+        // 🔥 INI FIX UTAMANYA
+        tvTotalDialog.text = "Total Rp $total"
 
         btnPay.setOnClickListener {
-            val selectedPayment = when (rgPayment.checkedRadioButtonId) {
-                R.id.rb_dana -> "Dana"
-                R.id.rb_bank -> "Bank"
-                else -> "Dana"
-            }
-
-            Toast.makeText(this, "Bayar dengan $selectedPayment", Toast.LENGTH_SHORT).show()
-
-            // pindah ke dashboard
+            Toast.makeText(this, "Pembayaran berhasil", Toast.LENGTH_SHORT).show()
             startActivity(Intent(this, DashboardActivity::class.java))
             finish()
+            dialog.dismiss()
+        }
+
+        btnClose.setOnClickListener {
             dialog.dismiss()
         }
 
         dialog.show()
     }
 
-    // =========================
+    // =====================
     // DATA CLASS
-    // =========================
+    // =====================
     data class CartItem(
         val name: String,
         val price: Int,
@@ -123,9 +138,9 @@ class CartActivity : AppCompatActivity() {
         val image: Int
     )
 
-    // =========================
+    // =====================
     // ADAPTER (SATU FILE)
-    // =========================
+    // =====================
     class CartAdapter(
         private val list: MutableList<CartItem>,
         private val onUpdate: () -> Unit

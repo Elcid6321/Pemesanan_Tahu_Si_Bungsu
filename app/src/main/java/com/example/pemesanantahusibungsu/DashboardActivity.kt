@@ -2,43 +2,36 @@ package com.example.pemesanantahusibungsu
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.*
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.ImageView
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class DashboardActivity : AppCompatActivity() {
-
-    private lateinit var tvWelcome: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_dashboard)
 
-        // Ambil data username dari intent Login/Register
-        val username = intent.getStringExtra("username") ?: "Pengguna"
+        // ===== AMBIL NAMA USER DARI REGISTER / LOGIN =====
+        val pref = getSharedPreferences("USER_DATA", MODE_PRIVATE)
+        val nama = pref.getString("nama", "User")
 
-        // TextView Selamat Datang
-        tvWelcome = findViewById(R.id.tv_welcome)
-        tvWelcome.text = "Selamat datang, $username"
+        val tvWelcome: TextView = findViewById(R.id.tv_welcome)
+        tvWelcome.text = "Halo, selamat datang $nama"
 
-        // =========================
-        // RECYCLER VIEW PRODUK
-        // =========================
+        // ===== RECYCLER VIEW =====
         val recyclerView = findViewById<RecyclerView>(R.id.rv_products)
         recyclerView.layoutManager = GridLayoutManager(this, 2)
         recyclerView.adapter = ProductAdapter(getProducts())
 
-        // =========================
-        // BOTTOM NAVIGATION
-        // =========================
+        // ===== BOTTOM NAV =====
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
         bottomNav.selectedItemId = R.id.nav_home
+
         bottomNav.setOnItemSelectedListener {
             when (it.itemId) {
                 R.id.nav_home -> true
@@ -75,9 +68,6 @@ class DashboardActivity : AppCompatActivity() {
         Product("Kembang Tahu","Isi 10 lembar","Rp 15.000",R.drawable.kembang_tahu)
     )
 
-    // =========================
-    // DATA CLASS PRODUK
-    // =========================
     data class Product(
         val name: String,
         val desc: String,
@@ -86,7 +76,7 @@ class DashboardActivity : AppCompatActivity() {
     )
 
     // =========================
-    // ADAPTER PRODUK
+    // ADAPTER (SATU FILE)
     // =========================
     inner class ProductAdapter(private val list: List<Product>) :
         RecyclerView.Adapter<ProductAdapter.VH>() {
@@ -106,11 +96,13 @@ class DashboardActivity : AppCompatActivity() {
 
         override fun onBindViewHolder(holder: VH, position: Int) {
             val product = list[position]
+
             holder.name.text = product.name
             holder.desc.text = product.desc
             holder.price.text = product.price
             holder.img.setImageResource(product.image)
 
+            // 🔥 INI YANG TADI HILANG (KUNCI UTAMA)
             holder.itemView.setOnClickListener {
                 val intent = Intent(this@DashboardActivity, DetailProductActivity::class.java)
                 intent.putExtra("name", product.name)
